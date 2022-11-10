@@ -1,0 +1,58 @@
+#include "xc.inc"
+GLOBAL _chen
+    
+PSECT mytext, local, class=CODE, reloc=2
+
+
+	
+	
+SETALL macro value, register
+	MOVLW value;
+	MOVWF register;
+	MOVLW 0x00;
+endm
+
+_chen:
+//input 0x01, 0x03
+
+MOVFF 0x01, 0x11; target_value
+    
+MOVFF 0x11, 0x51;
+MOVFF 0x03, 0x13; time
+DECF 0x13;
+SETALL 0x00, 0x10;
+SETALL 0x00, 012;
+
+TSTFSZ 0x03;;!=0
+	goto power
+SETALL 0x00,0x00;==0
+SETALL 0x00,0x01;
+goto endding;
+
+power:
+	
+	CLRF 0x23;
+	CLRF 0x22;
+	SETALL 0x00,STATUS;
+
+	MOVFF 0x51, WREG;
+	MULWF 0x11;
+	MOVFF PRODH, 0x22;
+	MOVFF PRODL, 0x23;
+
+	MULWF 0x10;
+	MOVFF PRODL, 0x10;
+	MOVFF 0x23, 0x11;
+	MOVFF 0x22, WREG;
+	ADDWFC 0x10,F;
+
+	DECFSZ 0x13;
+		goto power;!=0
+
+
+	MOVFF 0x10, 0x00;
+	MOVFF 0x11, 0x01;
+
+endding:
+
+end

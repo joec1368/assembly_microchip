@@ -1,0 +1,141 @@
+#include "xc.inc"
+GLOBAL _dividend
+    
+PSECT mytext, local, class=CODE, reloc=2
+ 
+ SETALL macro value, register
+       MOVLW value
+       MOVWF register
+       MOVLW 0x00
+     endm 
+     
+; reverse macro register,
+;	COMF register,F;
+;	INCF register
+;    endm
+
+_dividend:
+	MOVFF 0x01,0x03;
+	MOVFF WREG,0x01;
+	MOVFF 0x01,WREG;
+	XORWF 0x03,W;
+	BTFSC WREG,7;
+	    INCF 0x50;==1 0x50==flag, if == 1 -> negative
+	
+	    
+	;==0
+	MOVFF 0x01, WREG
+	BTFSC WREG,7;
+	    COMF 0x01;==1
+	BTFSC WREG,7;
+	    INCF 0x01;==1
+	    
+	MOVFF 0x03,WREG
+	BTFSC WREG,7;==0
+	    COMF 0x03;==1
+	BTFSC WREG,7
+	    INCF 0x03;
+	    
+	MOVFF 0x01, 0x10;divdend
+	MOVFF 0x03, 0x11;divisor
+	SETALL 0x00,0x00;
+	
+	LFSR 0, 0x10;
+	LFSR 1, 0x11;
+	LFSR 2, 0x00;
+
+	RLNCF INDF1;
+	RLNCF INDF1;
+	RLNCF INDF1;
+	RLNCF INDF1;
+
+;first
+	MOVF INDF1,w;
+	SUBWF INDF0 , w;
+
+	BTFSS STATUS, 4;
+		MOVWF INDF0;bit4(positive) == 0;
+	BTFSS STATUS, 4;;bit4(negative) == 1;
+		MOVLW 0x01;bit4(positive) == 0;
+	BTFSS STATUS, 4;;bit4(negative) == 1;
+		ADDWF INDF2;bit4(positive) == 0;
+	CLRF WREG;
+	MOVWF STATUS;
+	RRNCF INDF1;right/654
+	RLNCF INDF2;left
+;second
+	MOVF INDF1,w;
+	SUBWF INDF0 , w;
+
+	BTFSS STATUS, 4;
+		MOVWF INDF0;bit4(positive) == 0;
+	BTFSS STATUS, 4;;bit4(negative) == 1;
+		MOVLW 0x01;bit4(positive) == 0;
+	BTFSS STATUS, 4;;bit4(negative) == 1;
+		ADDWF INDF2;bit4(positive) == 0;    
+	CLRF WREG;
+	MOVWF STATUS;
+	RRNCF INDF1;543
+	RLNCF INDF2;
+;third
+	MOVF INDF1,w;
+	SUBWF INDF0 , w;
+
+	BTFSS STATUS, 4;
+		MOVWF INDF0;bit4(positive) == 0;
+	BTFSS STATUS, 4;;bit4(negative) == 1;
+		MOVLW 0x01;bit4(positive) == 0;
+	BTFSS STATUS, 4;;bit4(negative) == 1;
+		ADDWF INDF2;bit4(positive) == 0;    
+	CLRF WREG;
+	MOVWF STATUS;
+	RRNCF INDF1;432
+	RLNCF INDF2;
+;fourth
+	MOVF INDF1,w;
+	SUBWF INDF0 , w;
+
+	BTFSS STATUS, 4;
+		MOVWF INDF0;bit4(positive) == 0;
+	BTFSS STATUS, 4;;bit4(negative) == 1;
+		MOVLW 0x01;bit4(positive) == 0;
+	BTFSS STATUS, 4;;bit4(negative) == 1;
+		ADDWF INDF2;bit4(positive) == 0; 
+	
+	CLRF WREG;
+	MOVWF STATUS;
+	RRNCF INDF1;321
+	RLNCF INDF2;
+;fifth
+	MOVF INDF1,w;
+	SUBWF INDF0 , w;
+
+	BTFSS STATUS, 4;
+		MOVWF INDF0;bit4(positive) == 0;remainder
+	BTFSS STATUS, 4;;bit4(negative) == 1;
+		MOVLW 0x01;bit4(positive) == 0;
+	BTFSS STATUS, 4;;bit4(negative) == 1;
+		ADDWF INDF2;bit4(positive) == 0;quotient
+		
+	MOVFF INDF0, 0x03;
+	MOVLW 0x00;
+	
+	CPFSEQ 0x50;check negative or not
+	    COMF INDF2;!=
+	CPFSEQ 0x50
+	    INCF INDF2;
+	;==
+	
+	MOVFF INDF2, 0x01;
+	
+	clrf 0x00;
+	clrf 0x02;
+	
+	goto endding
+
+
+	
+	
+	
+endding:	
+end
